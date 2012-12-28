@@ -59,7 +59,8 @@ class TTYReader(object):
     def match(self,f=None,timeout=2):
         self.buffer = []
         now = time.time() 
-        while self.ready(timeout) and (time.time() - now < timeout):
+        #while self.ready(timeout) and (time.time() - now < timeout):
+        while time.time() - now < timeout:
             line = self.readline()
             if f(line):
                 return line

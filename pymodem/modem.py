@@ -1,5 +1,5 @@
 
-import optparse,sys 
+import re,optparse,sys 
 from sms import SMSDeliver, SMSException
 from chat import TTYReader,NotFound
 
@@ -17,27 +17,31 @@ class ModemReader(TTYReader):
         self.AT('E0')
         self.readlines()
 
-    def sendAT(self,message,check_ok=True):
+    def sendAT(self,message,timeout=2,check_ok=True):
         self.readlines()
         if not message.startswith('AT'):
             message = 'AT' + message
         self.write(message + "\r\n")
         if check_ok:
             try:
-                self.match(lambda l:l == "OK")
-                f = lambda l:l and not l.startswith(('^',message))
-                return filter(f,self.buffer)
+                self.match(lambda l:l == "OK",timeout=timeout)
+                return filter(None,self.buffer)
             except(NotFound):
-                raise ATError(message,self.buffer)
+                raise ATError(message,filter(None,self.buffer))
 
-    def sendExtendedAT(self,message,data):
+    def sendExtendedAT(self,message,data,timeout=2,check_ok=True):
         self.readlines()
         if not message.startswith('AT'):
             message = 'AT' + message
         self.write(message + "\r")
         self.ready(1)
         self.write(data + "\x1a")
-        print self.readlines()
+        if check_ok:
+            try:
+                self.match(lambda l:l == "OK",timeout=timeout)
+                return filter(None,self.buffer)
+            except(NotFound):
+                raise ATError(message,filter(None,self.buffer))
 
     def AT(self,command,strip=True):
         lines = self.sendAT(command)
@@ -70,13 +74,6 @@ class GSMModemReader(ModemReader):
     def getMSISDN(self):
         return self.AT('+CNUM').split(",")[1].strip('"')
     
-    def checkSMSSupport(self):
-        service,mt,mo,bm = self.AT('+CSMS?').split()[1].split(",")
-        if mt:
-            return True
-        else:
-            return False
-
     def getMode(self):
         mode = self.AT("+CMGF?")
         return {"0":"PDU","1":"Text"}[mode]
@@ -87,6 +84,22 @@ class GSMModemReader(ModemReader):
     def pduMode(self):
         self.sendAT("+CMGF=0")
 
+    def checkSMSSupport(self):
+        try:
+            service,mt,mo,bm = re.search('(\d,\d,\d,\d)',self.AT('+CSMS?')).group().split(",")
+            if mt:
+                return True
+            else:
+                return False
+        except Exception:
+            return False
+
+    def sendSMS(self,number,message):
+        if len(message) > 160:
+            raise ValueError("SMS message too long")
+        self.textMode()
+        return self.sendExtendedAT('+CMGS="%s"' % number,message,timeout=10)[0]
+
     def deleteSMS(self,n):
         try:
             self.pduMode()
@@ -96,14 +109,11 @@ class GSMModemReader(ModemReader):
             return False
 
     def getSMS(self,n,debug=None):
-        try:
-            self.pduMode()
-            header,tpdu = self.sendAT('+CMGR=%d' % n)
-            sms = SMSDeliver(debug)
-            sms.parse(header,tpdu,n)
-            return sms
-        except (ATError,ValueError):
-            return None
+        self.pduMode()
+        header,tpdu = self.sendAT('+CMGR=%d' % n)
+        sms = SMSDeliver(debug)
+        sms.parse(header,tpdu,n)
+        return sms
 
     def getSMSList(self,new=True,debug=None):
         sms_list = []
