@@ -17,15 +17,15 @@ class GenerateReadme(Command):
     def run(self):
         open("README","w").write(long_description)
 
-setup(name='gmail',
+setup(name='pymodem',
       version = version,
       description = 'Simple Python interface to generic terminal and (specifically) GSM modem devices. Includes general serial connection/chat, AT command, SMS (including GSM.03.38) support.',
       long_description = long_description,
       author = 'Paul Chakravarti',
       author_email = 'paul.chakravarti@gmail.com',
-      url = 'https://github.com/paulchakravarti/pygsm',
+      url = 'https://github.com/paulchakravarti/pymodem',
       cmdclass = { 'readme' : GenerateReadme },
-      packages = ['pygsm'],
+      packages = ['pymodem'],
       license = 'BSD',
       classifiers = [ "Topic :: Terminals :: Serial" ]
      )
