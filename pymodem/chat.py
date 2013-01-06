@@ -62,10 +62,11 @@ class TTYReader(object):
         #while self.ready(timeout) and (time.time() - now < timeout):
         while time.time() - now < timeout:
             line = self.readline()
-            if f(line):
-                return line
-            else:
-                self.buffer.append(line)
+            if line:
+                if f(line):
+                    return line
+                else:
+                    self.buffer.append(line)
         raise NotFound()
         
     def readlines(self,f=None):
