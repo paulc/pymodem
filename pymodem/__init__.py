@@ -1,5 +1,5 @@
 
-version = "0.1"
+version = "0.2"
 description = """
 
 Simple Python interface to generic terminal and (specifically) GSM modem
