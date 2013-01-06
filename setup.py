@@ -5,9 +5,9 @@ try:
 except ImportError:
     from distutils.core import Command,setup
 
-import gmail
-long_description = gmail.description
-version = gmail.version
+import pymodem
+long_description = pymodem.description
+version = pymodem.version
 
 class GenerateReadme(Command):
     description = "Generates README file from long_description"
