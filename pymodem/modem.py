@@ -30,7 +30,7 @@ class ModemReader(TTYReader):
                 raise ATError(message,filter(None,self.buffer))
 
     def sendExtendedAT(self,message,data,timeout=2,check_ok=True):
-        print self.readlines()
+        self.readlines()
         if not message.startswith('AT'):
             message = 'AT' + message
         self.write(message + "\r")
@@ -114,17 +114,6 @@ class GSMModemReader(ModemReader):
         sms = SMSDeliver(debug)
         sms.parse(header,tpdu,n)
         return sms
-
-    def getSMSIdList(self,start=1,end=100):
-        # Retrieve messages if AT+CMGL not supported (Samsung)
-        sms_list = []
-        for i in range(start,end):
-            try:
-                sms_list.append(self.getSMS(i))
-            except ATError,e:
-                break
-        return sms_list
-
 
     def getSMSList(self,new=True,debug=None):
         sms_list = []
