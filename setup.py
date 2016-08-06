@@ -26,6 +26,6 @@ setup(name='pymodem',
       url = 'https://github.com/paulchakravarti/pymodem',
       cmdclass = { 'readme' : GenerateReadme },
       packages = ['pymodem'],
-      license = 'BSD',
+      license = 'MIT',
       classifiers = [ "Topic :: Terminals :: Serial" ]
      )
